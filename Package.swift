@@ -2,6 +2,13 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import Foundation
+
+#if os(Linux)
+import Glibc
+#else
+import Darwin.C
+#endif
 
 /**
  【请脑补Xcode项目构建的五大组成部分】
@@ -40,36 +47,69 @@ import PackageDescription
          ]
  */
 
+
+enum BinarySource {
+    case local, remote
+
+    init() {
+        if getenv("USE_LOCAL_THIRD_BINARIES") != nil {
+            self = .local
+        } else {
+            self = .remote
+        }
+    }
+}
+
+// 一、命名空间
+extension String {
+    static let MySDK = "MyLibrary"
+    static let MySDKTests = "\(MySDK)Tests"
+    static let ThirdSDK = "FCTestSDK"
+}
+
+// 二、输出Product
+ extension Product {
+    static let MySDK = library(name: .MySDK, targets: [.MySDK])
+    static let ThirdSDK = library(name: .ThirdSDK, targets: [.ThirdSDK])
+}
+
+// 三、依赖库
+extension Target.Dependency {
+    static let MySDK = byName(name: .MySDK)
+    static let ThirdSDK = byName(name: .ThirdSDK)
+}
+
+// 四、关联关系
+extension LinkerSetting {
+    static let ThirdSDK = linkedFramework(.ThirdSDK)
+
+}
+
+// 五、Target编译配置
+extension Target {
+    static let MySDK = target(name: .MySDK, dependencies: [.ThirdSDK], linkerSettings: [.ThirdSDK])
+    static let MySDKTests = testTarget(name: .MySDKTests, dependencies: [.MySDK])
+    static let ThirdSDK = binaryTarget(name: .ThirdSDK, path: "Frameworks/\(String.ThirdSDK).xcframework")
+}
+
+// 工程配置文件
 let package = Package(
-    name: "MyLibrary",
+    // 1.Package名
+    name: .MySDK,
+    
+    // 2.生成对外可见的Product【即：需要制成的framework】
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
-        .library(
-            name: "MyLibrary",
-            targets: ["MyLibrary"]),
-        // 如若自己使用的三方库不希望被看见，直接注释掉下面的代码即可！
-//        .library(
-//            name: "FCTestSDK",
-//            targets: ["FCTestSDK"])
+        .MySDK,
+        //.ThirdSDK,
     ],
-    dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
-    ],
+    
+    // 3.三方Package的依赖引用【例：.package(url: /* package url */, from: "1.0.0"),】
+    dependencies: [],
+    
+    // 4.配置编译条件的Targets【参考Xcode编译多target配置】
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages this package depends on.
-        .target(
-            name: "MyLibrary",
-            dependencies: ["FCTestSDK"],
-            linkerSettings: [
-                .linkedFramework("FCTestSDK")
-            ]),
-        .testTarget(
-            name: "MyLibraryTests",
-            dependencies: ["MyLibrary"]),
-        .binaryTarget(
-            name: "FCTestSDK",
-            path: "Frameworks/FCTestSDK.xcframework")
+        .MySDK,
+        .MySDKTests,
+        .ThirdSDK,
     ]
 )

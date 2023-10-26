@@ -47,6 +47,9 @@ let package = Package(
         .library(
             name: "MyLibrary",
             targets: ["MyLibrary"]),
+        .library(
+            name: "FCTestSDK",
+            targets: ["FCTestSDK"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.

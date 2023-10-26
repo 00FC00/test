@@ -47,9 +47,10 @@ let package = Package(
         .library(
             name: "MyLibrary",
             targets: ["MyLibrary"]),
-        .library(
-            name: "FCTestSDK",
-            targets: ["FCTestSDK"])
+        // 如若自己使用的三方库不希望被看见，直接注释掉下面的代码即可！
+//        .library(
+//            name: "FCTestSDK",
+//            targets: ["FCTestSDK"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.

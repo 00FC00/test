@@ -1,0 +1,6 @@
+framework module FCTestSDK {
+  umbrella header "FCTestSDK.h"
+
+  export *
+  module * { export * }
+}

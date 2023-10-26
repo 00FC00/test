@@ -61,5 +61,8 @@ let package = Package(
         .testTarget(
             name: "MyLibraryTests",
             dependencies: ["MyLibrary"]),
+        .binaryTarget(
+            name: "FCTestSDK",
+            path: "Frameworks/FCTestSDK.xcframework")
     ]
 )

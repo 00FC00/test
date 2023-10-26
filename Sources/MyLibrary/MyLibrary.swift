@@ -1,3 +1,5 @@
+import FCTestSDK
+
 public struct MyLibrary {
     public private(set) var text = "Hello, World!"
 
@@ -6,5 +8,7 @@ public struct MyLibrary {
     
     public static func log() {
         print("FC的日志打印")
+        
+        FCTestSDK.test()
     }
 }

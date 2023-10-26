@@ -52,11 +52,7 @@ enum BinarySource {
     case local, remote
 
     init() {
-        if getenv("USE_LOCAL_THIRD_BINARIES") != nil {
-            self = .local
-        } else {
-            self = .remote
-        }
+        self = (getenv("USE_LOCAL_THIRD_BINARIES") != nil) ? .local : .remote
     }
 }
 
@@ -82,7 +78,6 @@ extension Target.Dependency {
 // 四、关联关系
 extension LinkerSetting {
     static let ThirdSDK = linkedFramework(.ThirdSDK)
-
 }
 
 // 五、Target编译配置

@@ -2,12 +2,11 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
-import Foundation
 
 #if os(Linux)
-import Glibc
+    import Glibc
 #else
-import Darwin.C
+    import Darwin.C
 #endif
 
 /**
@@ -77,31 +76,57 @@ extension Target.Dependency {
 
 // 四、关联关系
 extension LinkerSetting {
+    // 1.三方
     static let ThirdSDK = linkedFramework(.ThirdSDK)
+    // 2.系统
+    static let zLibrary = linkedLibrary("z")
+    static let cPlusPlusLibrary = linkedLibrary("c++")
 }
 
 // 五、Target编译配置
 extension Target {
-    static let MySDK = target(name: .MySDK, dependencies: [.ThirdSDK], linkerSettings: [.ThirdSDK])
+    static let MySDK = target(name: .MySDK, dependencies: [.ThirdSDK], linkerSettings: [.ThirdSDK, .zLibrary, .cPlusPlusLibrary])
     static let MySDKTests = testTarget(name: .MySDKTests, dependencies: [.MySDK])
-    static let ThirdSDK = binaryTarget(name: .ThirdSDK, path: "Frameworks/\(String.ThirdSDK).xcframework")
+    static let ThirdSDK = binaryTarget(name: .ThirdSDK, remoteChecksum: "33a13daa9d5a0900a4373d6e45ceac2c0d3a801957df84855e8d6c2c1380d246")
+
+    static let binarySource = BinarySource()
+    
+    static func binaryTarget(name: String, remoteChecksum: String) -> Target {
+        switch binarySource {
+        case .local:
+            return .binaryTarget(name: name, path: localBinaryPath(for: name))
+        case .remote:
+            return .binaryTarget(name: name, url: remoteBinaryURLString(for: name), checksum: remoteChecksum)
+        }
+    }
+    
+    static func localBinaryPath(for name: String) -> String {
+        "Frameworks/\(name).xcframework"
+    }
+
+    static func remoteBinaryURLString(for name: String) -> String {
+        "https://github.com/00FC00/passport/releases/download/1.0.0/\(name).zip"
+    }
 }
 
-// 工程配置文件
+// 六、工程配置文件
 let package = Package(
     // 1.Package名
     name: .MySDK,
     
-    // 2.生成对外可见的Product【即：需要制成的framework】
+    // 2.平台
+    platforms: [.iOS(.v13)],
+    
+    // 3.生成对外可见的Product【即：需要制成的framework】
     products: [
         .MySDK,
-        //.ThirdSDK,
+        .ThirdSDK,
     ],
     
-    // 3.三方Package的依赖引用【例：.package(url: /* package url */, from: "1.0.0"),】
+    // 4.三方Package的依赖引用【例：.package(url: /* package url */, from: "1.0.0"),】
     dependencies: [],
     
-    // 4.配置编译条件的Targets【参考Xcode编译多target配置】
+    // 5.配置编译条件的Targets【参考Xcode编译多target配置】
     targets: [
         .MySDK,
         .MySDKTests,

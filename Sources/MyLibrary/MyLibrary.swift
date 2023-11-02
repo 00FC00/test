@@ -1,4 +1,5 @@
 import FCTestSDK
+import VerifyCode
 
 public struct MyLibrary {
     public private(set) var text = "Hello, World!"
@@ -10,5 +11,6 @@ public struct MyLibrary {
         print("FC的日志打印")
         
         FCTestSDK.test()
+        NTESVerifyCodeManager.getInstance()
     }
 }

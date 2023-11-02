@@ -47,69 +47,7 @@ import PackageDescription
  */
 
 
-enum BinarySource {
-    case local, remote
-
-    init() {
-        self = (getenv("USE_LOCAL_THIRD_BINARIES") != nil) ? .local : .remote
-    }
-}
-
-// 一、命名空间
-extension String {
-    static let MySDK = "MyLibrary"
-    static let MySDKTests = "\(MySDK)Tests"
-    static let ThirdSDK = "FCTestSDK"
-}
-
-// 二、输出Product
- extension Product {
-    static let MySDK = library(name: .MySDK, targets: [.MySDK])
-    static let ThirdSDK = library(name: .ThirdSDK, targets: [.ThirdSDK])
-}
-
-// 三、依赖库
-extension Target.Dependency {
-    static let MySDK = byName(name: .MySDK)
-    static let ThirdSDK = byName(name: .ThirdSDK)
-}
-
-// 四、关联关系
-extension LinkerSetting {
-    // 1.三方
-    static let ThirdSDK = linkedFramework(.ThirdSDK)
-    // 2.系统
-    static let zLibrary = linkedLibrary("z")
-    static let cPlusPlusLibrary = linkedLibrary("c++")
-}
-
-// 五、Target编译配置
-extension Target {
-    static let MySDK = target(name: .MySDK, dependencies: [.ThirdSDK], linkerSettings: [.ThirdSDK, .zLibrary, .cPlusPlusLibrary])
-    static let MySDKTests = testTarget(name: .MySDKTests, dependencies: [.MySDK])
-    static let ThirdSDK = binaryTarget(name: .ThirdSDK, remoteChecksum: "33a13daa9d5a0900a4373d6e45ceac2c0d3a801957df84855e8d6c2c1380d246")
-
-    static let binarySource = BinarySource()
-    
-    static func binaryTarget(name: String, remoteChecksum: String) -> Target {
-        switch binarySource {
-        case .local:
-            return .binaryTarget(name: name, path: localBinaryPath(for: name))
-        case .remote:
-            return .binaryTarget(name: name, url: remoteBinaryURLString(for: name), checksum: remoteChecksum)
-        }
-    }
-    
-    static func localBinaryPath(for name: String) -> String {
-        "Frameworks/\(name).xcframework"
-    }
-
-    static func remoteBinaryURLString(for name: String) -> String {
-        "https://github.com/00FC00/passport/releases/download/1.0.0/\(name).zip"
-    }
-}
-
-// 六、工程配置文件
+// 工程配置文件
 let package = Package(
     // 1.Package名
     name: .MySDK,
@@ -121,6 +59,7 @@ let package = Package(
     products: [
         .MySDK,
         .ThirdSDK,
+        .VerifyCode,
     ],
     
     // 4.三方Package的依赖引用【例：.package(url: /* package url */, from: "1.0.0"),】
@@ -131,5 +70,110 @@ let package = Package(
         .MySDK,
         .MySDKTests,
         .ThirdSDK,
+        .VerifyCode,
     ]
 )
+
+// 一、设置文件源
+enum BinarySource {
+    case local, remote
+
+    init() {
+        self = (getenv("USE_LOCAL_THIRD_BINARIES") != nil) ? .local : .remote
+    }
+}
+
+// 二、命名空间
+extension String {
+    static let MySDK = "MyLibrary"
+    static let MySDKTests = "\(MySDK)Tests"
+    static let ThirdSDK = "FCTestSDK"
+    static let VerifyCode = "VerifyCode"
+}
+
+// 三、输出Product
+ extension Product {
+     static let MySDK = library(name: .MySDK, targets: [.MySDK])
+     static let ThirdSDK = library(name: .ThirdSDK, targets: [.ThirdSDK])
+     static let VerifyCode = library(name: .VerifyCode, targets: [.VerifyCode])
+}
+
+// 四、依赖库
+extension Target.Dependency {
+    static let MySDK = byName(name: .MySDK)
+    static let ThirdSDK = byName(name: .ThirdSDK)
+    static let VerifyCode = byName(name: .VerifyCode)
+}
+
+// 五、关联关系
+extension LinkerSetting {
+    // 1.三方
+    static let ThirdSDK = linkedFramework(.ThirdSDK)
+    static let VerifyCode = linkedFramework(.VerifyCode)
+    
+    // 2.系统
+    static let SystemConfiguration = linkedFramework("SystemConfiguration")
+    static let JavaScriptCore = linkedFramework("JavaScriptCore")
+    static let WebKit = linkedFramework("WebKit")
+    
+    // 3.动态库
+    //static let zLibrary = linkedLibrary("z")
+    //static let cPlusPlusLibrary = linkedLibrary("c++")
+    
+    // 4.标识符
+    static let ObjC = unsafeFlags(["-ObjC"])
+}
+
+// 六、资源文件
+extension Resource {
+    // 1.自己SDK用process性能高，copy性能低【近似于 @import与#import的关系】
+    static let Funtoy = process("../../Resources/Funtoy.bundle")
+    
+    // 2.三方SDK用copy，保持资源路径不被改变
+    static let NTESVerifyCodeResources = copy("../../Resources/NTESVerifyCodeResources.bundle")
+}
+
+// 七、Target编译配置
+extension Target {
+    static let MySDK = target(
+        name: .MySDK,
+        dependencies: [
+            .ThirdSDK,
+            .VerifyCode
+        ],
+        resources: [
+            .NTESVerifyCodeResources
+        ],
+        linkerSettings: [
+            .ThirdSDK,
+            .VerifyCode,
+            .SystemConfiguration,
+            .JavaScriptCore,
+            .WebKit,
+            .ObjC
+        ]
+    )
+    static let MySDKTests = testTarget(name: .MySDKTests, dependencies: [.MySDK])
+    static let ThirdSDK = binaryTarget(name: .ThirdSDK, remoteChecksum: "fa5fadffccf3d24e55809cfcfec7852e4c1934fe276df615b9182b59d7ce3c85")
+    static let VerifyCode = binaryTarget(name: .VerifyCode, remoteChecksum: "be0c8b7d464e4170190e659b81970de3d8458ab2dece84323aa662e6d76c8efd")
+
+    static let binarySource = BinarySource()
+    
+    static func binaryTarget(name: String, remoteChecksum: String) -> Target {
+        switch binarySource {
+        case .local:
+            return .binaryTarget(name: name, path: localBinaryPath(for: name))
+        case .remote:
+            return .binaryTarget(name: name, path: localBinaryPath(for: name))
+            //return .binaryTarget(name: name, url: remoteBinaryURLString(for: name), checksum: remoteChecksum)
+        }
+    }
+    
+    static func localBinaryPath(for name: String) -> String {
+        "Frameworks/\(name).xcframework"
+    }
+
+    static func remoteBinaryURLString(for name: String) -> String {
+        "https://github.com/00FC00/passport/releases/download/1.0.0/\(name).zip"
+    }
+}

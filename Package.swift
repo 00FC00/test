@@ -59,7 +59,6 @@ let package = Package(
     products: [
         .MySDK,
         .ThirdSDK,
-        .VerifyCode,
     ],
     
     // 4.三方Package的依赖引用【例：.package(url: /* package url */, from: "1.0.0"),】
@@ -70,7 +69,6 @@ let package = Package(
         .MySDK,
         .MySDKTests,
         .ThirdSDK,
-        .VerifyCode,
     ]
 )
 
@@ -87,29 +85,25 @@ enum BinarySource {
 extension String {
     static let MySDK = "MyLibrary"
     static let MySDKTests = "\(MySDK)Tests"
-    static let ThirdSDK = "FCTestSDK"
-    static let VerifyCode = "VerifyCode"
+    static let ThirdSDK = "VerifyCode"
 }
 
 // 三、输出Product
  extension Product {
      static let MySDK = library(name: .MySDK, targets: [.MySDK])
      static let ThirdSDK = library(name: .ThirdSDK, targets: [.ThirdSDK])
-     static let VerifyCode = library(name: .VerifyCode, targets: [.VerifyCode])
 }
 
 // 四、依赖库
 extension Target.Dependency {
     static let MySDK = byName(name: .MySDK)
     static let ThirdSDK = byName(name: .ThirdSDK)
-    static let VerifyCode = byName(name: .VerifyCode)
 }
 
 // 五、关联关系
 extension LinkerSetting {
     // 1.三方
     static let ThirdSDK = linkedFramework(.ThirdSDK)
-    static let VerifyCode = linkedFramework(.VerifyCode)
     
     // 2.系统
     static let SystemConfiguration = linkedFramework("SystemConfiguration")
@@ -139,14 +133,12 @@ extension Target {
         name: .MySDK,
         dependencies: [
             .ThirdSDK,
-            .VerifyCode
         ],
         resources: [
             .NTESVerifyCodeResources
         ],
         linkerSettings: [
             .ThirdSDK,
-            .VerifyCode,
             .SystemConfiguration,
             .JavaScriptCore,
             .WebKit,
@@ -154,8 +146,7 @@ extension Target {
         ]
     )
     static let MySDKTests = testTarget(name: .MySDKTests, dependencies: [.MySDK])
-    static let ThirdSDK = binaryTarget(name: .ThirdSDK, remoteChecksum: "fa5fadffccf3d24e55809cfcfec7852e4c1934fe276df615b9182b59d7ce3c85")
-    static let VerifyCode = binaryTarget(name: .VerifyCode, remoteChecksum: "be0c8b7d464e4170190e659b81970de3d8458ab2dece84323aa662e6d76c8efd")
+    static let ThirdSDK = binaryTarget(name: .ThirdSDK, remoteChecksum: "be0c8b7d464e4170190e659b81970de3d8458ab2dece84323aa662e6d76c8efd")
 
     static let binarySource = BinarySource()
     

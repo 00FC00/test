@@ -159,7 +159,10 @@ extension Target {
             .WebKit,
             .ObjC
         ],
-        plugins: [.plugin(name: .MyBuildToolPlugin)]
+        plugins: [
+            .plugin(name: .MyCommandPlugin),
+            .plugin(name: .MyBuildToolPlugin)
+        ]
     )
     
     // 2.MySDKTests

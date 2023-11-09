@@ -58,7 +58,6 @@ let package = Package(
     // 3.生成对外可见的Product【即：需要制成的framework】
     products: [
         .MySDK,
-        .ThirdSDK,
     ],
     
     // 4.三方Package的依赖引用【例：.package(url: /* package url */, from: "1.0.0"),】
@@ -69,6 +68,9 @@ let package = Package(
         .MySDK,
         .MySDKTests,
         .ThirdSDK,
+        .MyCommandPlugin,
+        .MyBuildToolPlugin,
+        .ExecutableBinary,
     ]
 )
 
@@ -86,18 +88,30 @@ extension String {
     static let MySDK = "MyLibrary"
     static let MySDKTests = "\(MySDK)Tests"
     static let ThirdSDK = "VerifyCode"
+    static let MyCommandPlugin = "GenerateCodeStats"
+    static let MyBuildToolPlugin = "GenUserDefaults"
+    static let ExecutableBinary = "GenUserDefaultsExec"
 }
 
 // 三、输出Product
  extension Product {
+     // 1.SDKs
      static let MySDK = library(name: .MySDK, targets: [.MySDK])
      static let ThirdSDK = library(name: .ThirdSDK, targets: [.ThirdSDK])
+     // 2.Plugins
+     static let MyCommandPlugin = plugin(name: .MyCommandPlugin, targets: [.MyCommandPlugin])
+     static let MyBuildToolPlugin = plugin(name: .MyBuildToolPlugin, targets: [.MyBuildToolPlugin])
+     // 3.Executable Binary
+     static let ExecutableBinary = executable(name: .ExecutableBinary, targets: [.ExecutableBinary])
 }
 
 // 四、依赖库
 extension Target.Dependency {
     static let MySDK = byName(name: .MySDK)
     static let ThirdSDK = byName(name: .ThirdSDK)
+    static let MyCommandPlugin = byName(name: .MyCommandPlugin)
+    static let MyBuildToolPlugin = byName(name: .MyBuildToolPlugin)
+    static let ExecutableBinary = byName(name: .ExecutableBinary)
 }
 
 // 五、关联关系
@@ -129,6 +143,7 @@ extension Resource {
 
 // 七、Target编译配置
 extension Target {
+    // 1.MySDK
     static let MySDK = target(
         name: .MySDK,
         dependencies: [
@@ -143,9 +158,14 @@ extension Target {
             .JavaScriptCore,
             .WebKit,
             .ObjC
-        ]
+        ],
+        plugins: [.plugin(name: .MyBuildToolPlugin)]
     )
+    
+    // 2.MySDKTests
     static let MySDKTests = testTarget(name: .MySDKTests, dependencies: [.MySDK])
+    
+    // 3.ThirdSDK
     static let ThirdSDK = binaryTarget(name: .ThirdSDK, remoteChecksum: "be0c8b7d464e4170190e659b81970de3d8458ab2dece84323aa662e6d76c8efd")
 
     static let binarySource = BinarySource()
@@ -167,4 +187,29 @@ extension Target {
     static func remoteBinaryURLString(for name: String) -> String {
         "https://github.com/00FC00/passport/releases/download/1.0.0/\(name).zip"
     }
+    
+    // 4.Plugins
+    // 4.1 Command
+    static let MyCommandPlugin = plugin(
+        name: .MyCommandPlugin,
+        capability: .command(
+            intent: .custom(
+                verb: "code-stats",
+                description: "Generates code statistics"
+            ),
+            permissions: [
+                .writeToPackageDirectory(reason: "Generate code statistics file at root level")
+            ]
+        )
+    )
+    
+    // 4.2 BuildTool
+    static let MyBuildToolPlugin = plugin(
+        name: .MyBuildToolPlugin,
+        capability: .buildTool(),
+        dependencies: [.ExecutableBinary]
+    )
+
+    // 5.可执行的二进制程序
+    static let ExecutableBinary = executableTarget(name: .ExecutableBinary, dependencies: [])
 }

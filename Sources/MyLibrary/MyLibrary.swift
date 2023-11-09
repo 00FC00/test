@@ -1,4 +1,3 @@
-import FCTestSDK
 import VerifyCode
 
 public struct MyLibrary {
@@ -12,9 +11,7 @@ public struct MyLibrary {
     
     public static func log() {
         print("FC的日志打印")
-        
-        FCTestSDK.test()
-        NTESVerifyCodeManager.getInstance()
+        print("UserId: \(String(describing: UserDefaults.standard.object(forKey: "userId")))")
     }
     
     public func openVerifyCodwView(on view: UIView) {

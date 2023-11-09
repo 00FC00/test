@@ -1,0 +1,3 @@
+appLaunchCounter Int 0
+showOnboarding Bool true
+userId String

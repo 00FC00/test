@@ -204,7 +204,8 @@ extension Target {
             permissions: [
                 .writeToPackageDirectory(reason: "Generate code statistics file at root level")
             ]
-        )
+        ),
+        path: "./Plugins/GenerateCodeStats"
     )
     
     // 4.2 BuildTool

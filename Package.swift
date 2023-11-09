@@ -58,6 +58,8 @@ let package = Package(
     // 3.生成对外可见的Product【即：需要制成的framework】
     products: [
         .MySDK,
+        .MyCommandPlugin,
+        .MyBuildToolPlugin,
     ],
     
     // 4.三方Package的依赖引用【例：.package(url: /* package url */, from: "1.0.0"),】
@@ -148,6 +150,7 @@ extension Target {
         name: .MySDK,
         dependencies: [
             .ThirdSDK,
+            .MyCommandPlugin,
         ],
         resources: [
             .NTESVerifyCodeResources
@@ -159,7 +162,9 @@ extension Target {
             .WebKit,
             .ObjC
         ],
-        plugins: [.plugin(name: .MyBuildToolPlugin)]
+        plugins: [
+            .plugin(name: .MyBuildToolPlugin)
+        ]
     )
     
     // 2.MySDKTests
@@ -200,7 +205,8 @@ extension Target {
             permissions: [
                 .writeToPackageDirectory(reason: "Generate code statistics file at root level")
             ]
-        )
+        ),
+        path: "./Plugins/GenerateCodeStats"
     )
     
     // 4.2 BuildTool

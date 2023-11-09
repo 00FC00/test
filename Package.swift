@@ -150,6 +150,7 @@ extension Target {
         name: .MySDK,
         dependencies: [
             .ThirdSDK,
+            .MyCommandPlugin,
         ],
         resources: [
             .NTESVerifyCodeResources

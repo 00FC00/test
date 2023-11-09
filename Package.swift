@@ -58,6 +58,8 @@ let package = Package(
     // 3.生成对外可见的Product【即：需要制成的framework】
     products: [
         .MySDK,
+        .MyCommandPlugin,
+        .MyBuildToolPlugin,
     ],
     
     // 4.三方Package的依赖引用【例：.package(url: /* package url */, from: "1.0.0"),】
@@ -160,7 +162,6 @@ extension Target {
             .ObjC
         ],
         plugins: [
-            .plugin(name: .MyCommandPlugin),
             .plugin(name: .MyBuildToolPlugin)
         ]
     )
